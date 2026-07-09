@@ -1,0 +1,19 @@
+{
+  "name": "custom-erp-frontend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "devDependencies": {
+    "@nuxt/devtools": "latest",
+    "@nuxtjs/tailwindcss": "^6.12.0",
+    "nuxt": "^3.12.0",
+    "vue": "latest",
+    "vue-router": "latest"
+  }
+}
