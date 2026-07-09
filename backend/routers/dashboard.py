@@ -11,25 +11,37 @@ router = APIRouter(
     tags=["dashboard"]
 )
 
+from typing import Optional
+
 @router.get("/kpi")
-def get_kpi(db: Session = Depends(get_db), current_user: models.Uporabnik = Depends(auth.get_current_user)):
-    # 1. Skupna vrednost zaloge v skladišču (cena * zaloga)
-    # Using 'zadnja_nabavna_cena' or 'cena'? Usually inventory value is based on purchase price (zadnja_nabavna_cena).
-    # We will use sum(zadnja_nabavna_cena * trenutna_zaloga). If not available, fallback to cena.
+def get_kpi(
+    period: str = "this_month", 
+    db: Session = Depends(get_db), 
+    current_user: models.Uporabnik = Depends(auth.require_role(['admin']))
+):
+    now = datetime.now()
+    if period == "90days":
+        start_date = now - timedelta(days=90)
+    elif period == "this_year":
+        start_date = datetime(now.year, 1, 1)
+    else:
+        start_date = datetime(now.year, now.month, 1)
+
+    # 1. Skupna vrednost zaloge (se ne spreminja glede na filter, vedno je trenutna vrednost)
     zalog_items = db.query(models.Artikel.trenutna_zaloga, models.Artikel.zadnja_nabavna_cena).filter(models.Artikel.trenutna_zaloga > 0).all()
     skupna_vrednost = sum(item[0] * float(item[1] or 0) for item in zalog_items)
 
-    # 2. Prihodki ta mesec
-    now = datetime.now()
-    first_day_of_month = datetime(now.year, now.month, 1)
-    
+    # 2. Prihodki v obdobju
     prihodki = db.query(func.sum(models.Racun.skupni_znesek)).filter(
         models.Racun.status.in_(['potrjeno', 'placano']),
-        models.Racun.datum_izdaje >= first_day_of_month
+        models.Racun.datum_izdaje >= start_date
     ).scalar() or 0
 
-    # 3. Število neplačanih računov (potrjeno = issued but not paid)
-    neplacani = db.query(func.count(models.Racun.id)).filter(models.Racun.status == 'potrjeno').scalar() or 0
+    # 3. Število neplačanih računov (v obdobju)
+    neplacani = db.query(func.count(models.Racun.id)).filter(
+        models.Racun.status == 'potrjeno',
+        models.Racun.datum_izdaje >= start_date
+    ).scalar() or 0
 
     return {
         "vrednost_zaloge": skupna_vrednost,
@@ -38,36 +50,54 @@ def get_kpi(db: Session = Depends(get_db), current_user: models.Uporabnik = Depe
     }
 
 @router.get("/charts")
-def get_charts(db: Session = Depends(get_db), current_user: models.Uporabnik = Depends(auth.get_current_user)):
-    # 1. Monthly revenue (last 6 months)
+def get_charts(
+    period: str = "this_month", 
+    db: Session = Depends(get_db), 
+    current_user: models.Uporabnik = Depends(auth.require_role(['admin']))
+):
     now = datetime.now()
+    
+    # Določi začetni datum in število mesecev za graf
+    if period == "90days":
+        start_date = now - timedelta(days=90)
+        months_to_show = 3
+    elif period == "this_year":
+        start_date = datetime(now.year, 1, 1)
+        months_to_show = now.month
+    else:
+        start_date = datetime(now.year, now.month, 1)
+        months_to_show = 6 # Pri 'ta mesec' vseeno pokažemo zadnjih 6 mesecev za lažjo primerjavo na grafu
+        
     monthly_revenue = {"labels": [], "data": []}
     
-    for i in range(5, -1, -1):
+    # Generiraj mesečne podatke za graf
+    for i in range(months_to_show - 1, -1, -1):
         m = now.month - i
         y = now.year
         if m <= 0:
             m += 12
             y -= 1
         
-        start_date = datetime(y, m, 1)
+        m_start_date = datetime(y, m, 1)
         _, last_day = calendar.monthrange(y, m)
-        end_date = datetime(y, m, last_day, 23, 59, 59)
+        m_end_date = datetime(y, m, last_day, 23, 59, 59)
         
         revenue = db.query(func.sum(models.Racun.skupni_znesek)).filter(
             models.Racun.status.in_(['potrjeno', 'placano']),
-            models.Racun.datum_izdaje >= start_date,
-            models.Racun.datum_izdaje <= end_date
+            models.Racun.datum_izdaje >= m_start_date,
+            models.Racun.datum_izdaje <= m_end_date
         ).scalar() or 0
         
         monthly_revenue["labels"].append(f"{m:02d}/{y}")
         monthly_revenue["data"].append(float(revenue))
         
-    # 2. Top 5 najbolj prodajanih artiklov
+    # 2. Top 5 najbolj prodajanih artiklov v obdobju
     top_items = db.query(
         models.Artikel.naziv, 
         func.sum(models.PostavkaRacuna.kolicina).label('total_qty')
     ).join(models.PostavkaRacuna, models.Artikel.id == models.PostavkaRacuna.artikel_id)\
+     .join(models.Racun, models.Racun.id == models.PostavkaRacuna.racun_id)\
+     .filter(models.Racun.datum_izdaje >= start_date)\
      .group_by(models.Artikel.id)\
      .order_by(func.sum(models.PostavkaRacuna.kolicina).desc())\
      .limit(5).all()
