@@ -1,10 +1,11 @@
-FROM node:18-alpine
+FROM node:18-slim
 
 WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm install
+# Uporabimo --ignore-scripts, da preprečimo napake pri "nuxt prepare" med namestitvijo
+RUN npm install --ignore-scripts
 
 COPY . .
 
