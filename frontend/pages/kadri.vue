@@ -6,7 +6,7 @@ if (!auth.hasRole(['admin'])) {
   navigateTo('/')
 }
 
-const { data: uporabniki, refresh } = await useFetch('http://localhost:8000/api/uporabniki')
+const { data: uporabniki, refresh } = await useFetch('/api/uporabniki')
 
 const formData = ref({
   ime: '',
@@ -23,7 +23,7 @@ const shraniUporabnika = async () => {
   isSubmitting.value = true
   errorMsg.value = ''
   try {
-    const res = await fetch('http://localhost:8000/api/uporabniki', {
+    const res = await fetch('/api/uporabniki', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData.value)

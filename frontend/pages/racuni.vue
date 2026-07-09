@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 
-const { data: racuni, refresh: refreshRacuni } = await useFetch('http://localhost:8000/api/racuni')
+const { data: racuni, refresh: refreshRacuni } = await useFetch('/api/racuni')
 const isInvoiceModalOpen = ref(false)
 
 const handleInvoiceSuccess = () => {
@@ -11,7 +11,7 @@ const handleInvoiceSuccess = () => {
 
 const potrdiRacun = async (id) => {
   try {
-    const res = await fetch(`http://localhost:8000/api/racuni/${id}/potrdi`, {
+    const res = await fetch(`/api/racuni/${id}/potrdi`, {
       method: 'PUT'
     })
     if (!res.ok) {
@@ -81,7 +81,7 @@ const potrdiRacun = async (id) => {
                 Potrdi
               </button>
               <a 
-                :href="`http://localhost:8000/api/racuni/${racun.id}/pdf`" 
+                :href="`/api/racuni/${racun.id}/pdf`" 
                 target="_blank"
                 class="inline-block text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-md font-medium"
               >

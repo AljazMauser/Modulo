@@ -7,10 +7,10 @@ ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale,
 
 const selectedPeriod = ref('this_month')
 
-const { data: kpi } = await useFetch('http://localhost:8000/api/dashboard/kpi', {
+const { data: kpi } = await useFetch('/api/dashboard/kpi', {
   query: { period: selectedPeriod }
 })
-const { data: charts } = await useFetch('http://localhost:8000/api/dashboard/charts', {
+const { data: charts } = await useFetch('/api/dashboard/charts', {
   query: { period: selectedPeriod }
 })
 

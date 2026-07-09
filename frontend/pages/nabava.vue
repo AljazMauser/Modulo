@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 
-const { data: narocila, refresh: refreshNarocila } = await useFetch('http://localhost:8000/api/nabava')
+const { data: narocila, refresh: refreshNarocila } = await useFetch('/api/nabava')
 const isPOModalOpen = ref(false)
 
 const handlePOSuccess = () => {
@@ -13,7 +13,7 @@ const potrdiPrejem = async (id) => {
   if(!confirm('Ali ste prepričani, da ste prejeli blago? Zaloga in nabavne cene se bodo posodobile.')) return;
   
   try {
-    const res = await fetch(`http://localhost:8000/api/nabava/${id}/potrdi_prejem`, {
+    const res = await fetch(`/api/nabava/${id}/potrdi_prejem`, {
       method: 'PUT'
     })
     if (!res.ok) {

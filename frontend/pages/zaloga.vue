@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 
-const { data: artikli, refresh } = await useFetch('http://localhost:8000/api/artikli')
+const { data: artikli, refresh } = await useFetch('/api/artikli')
 
 const isMovementModalOpen = ref(false)
 const isArticleModalOpen = ref(false)
