@@ -18,7 +18,7 @@ const fetchPremiki = async () => {
   loading.value = true
   error.value = ''
   try {
-    const res = await fetch(`http://localhost:8000/api/artikli/${props.artikel.id}/premiki`)
+    const res = await fetch(`/api/artikli/${props.artikel.id}/premiki`)
     const data = await res.json()
     if (!res.ok) throw new Error(data.detail || 'Napaka pri nalaganju zgodovine')
     premiki.value = data

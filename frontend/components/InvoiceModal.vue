@@ -30,8 +30,8 @@ const handlePartnerSuccess = (newPartner) => {
 const fetchDependencies = async () => {
   try {
     const [pRes, aRes] = await Promise.all([
-      fetch('http://localhost:8000/api/partnerji'),
-      fetch('http://localhost:8000/api/artikli')
+      fetch('/api/partnerji'),
+      fetch('/api/artikli')
     ])
     partnerji.value = await pRes.json()
     artikli.value = await aRes.json()
@@ -87,7 +87,7 @@ const submitForm = async () => {
   loading.value = true
   error.value = ''
   try {
-    const res = await fetch('http://localhost:8000/api/racuni', {
+    const res = await fetch('/api/racuni', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData.value)

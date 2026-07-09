@@ -33,7 +33,7 @@ const submitForm = async () => {
   loading.value = true
   error.value = ''
   try {
-    const res = await fetch('http://localhost:8000/api/artikli', {
+    const res = await fetch('/api/artikli', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData.value)

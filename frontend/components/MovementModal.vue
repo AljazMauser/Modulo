@@ -34,7 +34,7 @@ const submitForm = async () => {
   loading.value = true
   error.value = ''
   try {
-    const res = await fetch('http://localhost:8000/api/premiki', {
+    const res = await fetch('/api/premiki', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData.value)
