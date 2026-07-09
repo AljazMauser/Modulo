@@ -18,6 +18,13 @@ const auth = useAuth()
                 class="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-500 transition-colors"
                 active-class="bg-blue-700"
               >
+                Nadzorna plošča
+              </NuxtLink>
+              <NuxtLink 
+                to="/zaloga" 
+                class="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-500 transition-colors"
+                active-class="bg-blue-700"
+              >
                 Upravljanje zalog
               </NuxtLink>
               <NuxtLink 

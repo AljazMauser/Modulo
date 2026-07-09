@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
-from routers import inventory, sales, purchasing, auth_router, users
+from routers import inventory, sales, purchasing, auth_router, users, dashboard
 import models
 
 # Kreacija tabel iz modelov, če še ne obstajajo
@@ -25,6 +25,7 @@ app.add_middleware(
 # Vključitev routerjev
 app.include_router(auth_router.router)
 app.include_router(users.router)
+app.include_router(dashboard.router)
 app.include_router(inventory.router)
 app.include_router(sales.router)
 app.include_router(purchasing.router)

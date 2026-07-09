@@ -1,76 +1,83 @@
 <script setup>
+import { Bar, Doughnut } from 'vue-chartjs'
+import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, ArcElement } from 'chart.js'
 import { ref } from 'vue'
 
-const { data: artikli, refresh } = await useFetch('http://localhost:8000/api/artikli')
+ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, ArcElement)
 
-const isMovementModalOpen = ref(false)
-const isArticleModalOpen = ref(false)
-const isHistoryModalOpen = ref(false)
-const selectedArtikel = ref(null)
+const { data: kpi, error: kpiError } = await useFetch('http://localhost:8000/api/dashboard/kpi')
+const { data: charts, error: chartError } = await useFetch('http://localhost:8000/api/dashboard/charts')
 
-const handlePremikSuccess = () => {
-  refresh() // Ponovno naloži artikle po uspešnem premiku
-  isMovementModalOpen.value = false
+const formatEur = (value) => {
+  return new Intl.NumberFormat('sl-SI', { style: 'currency', currency: 'EUR' }).format(value || 0)
 }
 
-const handleArtikelSuccess = () => {
-  refresh() // Ponovno naloži artikle po uspešnem dodajanju
-  isArticleModalOpen.value = false
-}
+const barChartData = ref({
+  labels: charts.value?.monthly_revenue?.labels || [],
+  datasets: [{
+    label: 'Prihodki',
+    backgroundColor: '#3b82f6',
+    data: charts.value?.monthly_revenue?.data || []
+  }]
+})
 
-const handleShowHistory = (artikel) => {
-  selectedArtikel.value = artikel
-  isHistoryModalOpen.value = true
+const doughnutChartData = ref({
+  labels: charts.value?.top_products?.labels || [],
+  datasets: [{
+    backgroundColor: ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6'],
+    data: charts.value?.top_products?.data || []
+  }]
+})
+
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: false
 }
 </script>
 
 <template>
-  <div class="min-h-screen p-8 bg-gray-50">
-    <div class="max-w-6xl mx-auto">
-      <div class="flex justify-between items-center mb-8">
-        <div>
-          <h1 class="text-3xl font-bold text-gray-900">Upravljanje zalog</h1>
-          <p class="text-gray-500 mt-1">Pregled artiklov in ustvarjanje premikov</p>
-        </div>
-        <div class="flex space-x-3">
-          <button 
-            @click="isArticleModalOpen = true"
-            class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-5 py-2.5 rounded-lg font-medium shadow-sm transition-colors"
-          >
-            + Nov Artikel
-          </button>
-          <button 
-            @click="isMovementModalOpen = true"
-            class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium shadow-sm transition-colors"
-          >
-            + Nov Premik
-          </button>
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">Nadzorna plošča</h1>
+
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      
+      <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
+        <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Vrednost zaloge</h3>
+        <p class="mt-2 text-3xl font-bold text-gray-900">{{ formatEur(kpi?.vrednost_zaloge) }}</p>
+      </div>
+
+      <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
+        <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Prihodki (ta mesec)</h3>
+        <p class="mt-2 text-3xl font-bold text-gray-900">{{ formatEur(kpi?.prihodki_mesec) }}</p>
+      </div>
+
+      <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
+        <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Neplačani računi</h3>
+        <p class="mt-2 text-3xl font-bold text-gray-900">{{ kpi?.neplacani_racuni || 0 }}</p>
+      </div>
+
+    </div>
+
+    <!-- Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      
+      <!-- Bar Chart: Monthly Revenue -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Mesečni prihodki (Zadnjih 6 mesecev)</h3>
+        <div class="h-64">
+          <Bar :data="barChartData" :options="chartOptions" />
         </div>
       </div>
 
-      <InventoryTable 
-        :artikli="artikli" 
-        @show-history="handleShowHistory"
-      />
-      
-      <MovementModal 
-        :is-open="isMovementModalOpen" 
-        :artikli="artikli"
-        @close="isMovementModalOpen = false"
-        @success="handlePremikSuccess"
-      />
+      <!-- Doughnut Chart: Top 5 Items -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Top 5 Najbolj Prodajanih Artiklov</h3>
+        <div class="h-64 flex justify-center">
+          <Doughnut :data="doughnutChartData" :options="chartOptions" />
+        </div>
+      </div>
 
-      <ArticleModal 
-        :is-open="isArticleModalOpen"
-        @close="isArticleModalOpen = false"
-        @success="handleArtikelSuccess"
-      />
-
-      <HistoryModal
-        :is-open="isHistoryModalOpen"
-        :artikel="selectedArtikel"
-        @close="isHistoryModalOpen = false"
-      />
     </div>
   </div>
 </template>
