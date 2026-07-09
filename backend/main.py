@@ -8,8 +8,8 @@ import models
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="Custom ERP API",
-    description="Osnovni API za naš po meri narejen ERP sistem.",
+    title="Modulo API",
+    description="Osnovni API za nas po meri narejen ERP sistem.",
     version="0.1.0"
 )
 
@@ -31,4 +31,4 @@ app.include_router(purchasing.router)
 
 @app.get("/")
 def read_root():
-    return {"message": "Dobrodošli v Custom ERP API. Pojdite na /docs za Swagger dokumentacijo."}
+    return {"message": "Dobrodošli v Modulo API. Pojdite na /docs za Swagger dokumentacijo."}
